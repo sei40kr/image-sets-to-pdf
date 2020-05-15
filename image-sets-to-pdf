@@ -25,7 +25,7 @@ recursively_process() {
 }
 
 is_archive() {
-  [[ -f "$target" && "$target" == *.zip ]]
+  [[ -f "$target" && "$target" =~ \.(zip|rar)$ ]]
 }
 
 recursively_process_archive() {
@@ -40,6 +40,13 @@ recursively_process_archive() {
     else
       unzip "$archive" -d "$temp_directory"
     fi
+    recursively_process_directory "$temp_directory"
+    rm -rf "$temp_directory"
+  elif [[ "$archive" == *.rar ]]; then
+    local temp_directory
+    temp_directory="$(mktemp -d)"
+    echo "Uncompressing \"${archive##*/}\" to \"${temp_directory}\""
+    unrar x "$archive" "$temp_directory"
     recursively_process_directory "$temp_directory"
     rm -rf "$temp_directory"
   else
