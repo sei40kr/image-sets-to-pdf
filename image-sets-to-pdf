@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+
+# If the number of images in a directory is equal or larger than this value,
+# this program converts them into a PDF.
+declare IMAGE_SET_SIZE_THRESOLD=3
+
+# The quality of images. This value will be passed to ImageMagick. This is
+# useful to reduce the size of output file to avoid the upload limitations on
+# Google Play Books.
+declare IMAGE_QUALITY='50%'
+
+declare PREFER_DITTO=0
+if hash ditto 2>/dev/null; then
+	PREFER_DITTO=1
+fi
+
+recursively_process() {
+	local target="$1"
+
+	if is_archive "$target"; then
+		recursively_process_archive "$target"
+	elif [[ -d "$target" ]]; then
+		recursively_process_directory "$target"
+	fi
+}
+
+is_archive() {
+	[[ -f "$target" && "$target" == *.zip ]]
+}
+
+recursively_process_archive() {
+	local archive="$1"
+
+	if [[ "$archive" == *.zip ]]; then
+		local temp_directory
+		temp_directory="$(mktemp -d)"
+		echo "Uncompressing \"${archive##*/}\" to \"${temp_directory}\""
+		if [[ "$PREFER_DITTO" == 1 ]]; then
+			ditto -xk "$archive" "$temp_directory"
+		else
+			unzip "$archive" -d "$temp_directory"
+		fi
+		recursively_process_directory "$temp_directory"
+		rm -rf "$temp_directory"
+	else
+		echo "Unknown or unsupported archive type: $archive" >&2
+		exit 1
+	fi
+}
+
+recursively_process_directory() {
+	local directory="$1"
+	local -a images
+	local image
+	local a_directory
+	local an_archive
+
+	while IFS='' read -r image; do
+		images+=("$image")
+	done < <(find "$directory" -mindepth 1 -maxdepth 1 -type f -name '*.jpg')
+
+	if [[ "$IMAGE_SET_SIZE_THRESOLD" -le "${#images}" ]]; then
+		local pdf_filename="${directory##*/}.pdf"
+		echo "Converting ${#images} images into \"${pdf_filename}\"."
+		convert "${images[@]}" -quality "$IMAGE_QUALITY" "$pdf_filename"
+	fi
+
+	while IFS='' read -r a_directory; do
+		recursively_process_directory "$a_directory"
+	done < <(find "$directory" -mindepth 1 -maxdepth 1 -type d)
+
+	while IFS='' read -r an_archive; do
+		recursively_process_archive "$an_archive"
+	done < <(find "$directory" -mindepth 1 -maxdepth 1 -type f -name '*.zip')
+}
+
+main() {
+	local -a targets=("$@")
+	if [[ "${#targets[@]}" == 0 ]]; then
+		targets+=("$PWD")
+	fi
+
+	recursively_process "${targets[@]}"
+}
+
+main "$@"
