@@ -68,7 +68,7 @@ recursively_process_directory() {
 
   if [[ "$IMAGE_SET_SIZE_THRESOLD" -le "${#images}" ]]; then
     local pdf_filename="${directory##*/}.pdf"
-    echo "Converting ${#images} images into \"${pdf_filename}\"."
+    echo "Converting ${#images[@]} images into \"${pdf_filename}\"."
     convert "${images[@]}" -quality "$IMAGE_QUALITY" "$pdf_filename"
   fi
 
