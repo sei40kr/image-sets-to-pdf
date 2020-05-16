@@ -91,24 +91,24 @@ recursively_process_archive() {
 }
 
 extract_series_name() {
-   local file_basename="$1"
+  local file_basename="$1"
 
-   file_basename="${file_basename#\(*\)}"
-   file_basename="${file_basename#\[*\]}"
-   file_basename="${file_basename##*([ 　])}"
-   file_basename="${file_basename%[ 　]*}"
-   file_basename="${file_basename%%*([ 　])}"
+  file_basename="${file_basename#\(*\)}"
+  file_basename="${file_basename#\[*\]}"
+  file_basename="${file_basename##*([ 　])}"
+  file_basename="${file_basename%[ 　]*}"
+  file_basename="${file_basename%%*([ 　])}"
 
-   echo "$file_basename"
+  echo "$file_basename"
 }
 
 extract_series_no() {
-   local file_basename="$1"
+  local file_basename="$1"
 
-   file_basename="${file_basename##*[ 　]}"
-   file_basename="${file_basename//[!0-9]/}"
+  file_basename="${file_basename##*[ 　]}"
+  file_basename="${file_basename//[!0-9]/}"
 
-   echo "$file_basename"
+  echo "$file_basename"
 }
 
 pdf_filename() {
