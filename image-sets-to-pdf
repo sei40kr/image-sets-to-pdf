@@ -175,7 +175,9 @@ main() {
     targets+=("$PWD")
   fi
 
-  recursively_process "${targets[@]}"
+  for target in "${targets[@]}"; do
+    recursively_process "$target"
+  done
 }
 
 main "$@"
