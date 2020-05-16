@@ -149,7 +149,7 @@ recursively_process_directory() {
     -mindepth 1 \
     -maxdepth 1 \
     -type f \
-    \( -name '*.jpg' -o -name '*.png' \) |
+    \( -name '*.jpg' -o -name '*.jpeg' -o -name '*.png' \) |
     sort)
 
   if [[ "$IMAGE_SET_SIZE_THRESOLD" -le "${#images}" ]]; then
