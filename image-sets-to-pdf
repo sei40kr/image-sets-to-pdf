@@ -93,6 +93,8 @@ recursively_process_archive() {
 extract_series_name() {
   local file_basename="$1"
 
+  file_basename="${file_basename%\[*\]}"
+  file_basename="${file_basename%%*([ 　])}"
   file_basename="${file_basename#\(*\)}"
   file_basename="${file_basename#\[*\]}"
   file_basename="${file_basename##*([ 　])}"
