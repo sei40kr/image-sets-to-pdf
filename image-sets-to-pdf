@@ -78,7 +78,11 @@ recursively_process_directory() {
 
   while IFS='' read -r an_archive; do
     recursively_process_archive "$an_archive"
-  done < <(find "$directory" -mindepth 1 -maxdepth 1 -type f -name '*.zip')
+  done < <(find "$directory" \
+    -mindepth 1 \
+    -maxdepth 1 \
+    -type f \
+    \( -name '*.zip' -o -name '*.rar' \))
 }
 
 main() {
