@@ -9,10 +9,17 @@
 # Google Play Books.
 : ${IMAGE_QUALITY:=50%}
 
+# The template for output PDF filenames. You can use these placeholders:
+# {series_name} -> series name
+# {series_no}   -> series no
+: ${PDF_FILENAME_TEMPLATE:='{series_name} {series_no}.pdf'}
+
 declare PREFER_DITTO=0
 if hash ditto 2>/dev/null; then
   PREFER_DITTO=1
 fi
+
+shopt -s extglob
 
 recursively_process() {
   local target="$1"
@@ -55,6 +62,46 @@ recursively_process_archive() {
   fi
 }
 
+extract_series_name() {
+   local file_basename="$1"
+
+   file_basename="${file_basename#\(*\)}"
+   file_basename="${file_basename#\[*\]}"
+   file_basename="${file_basename##*( )}"
+   file_basename="${file_basename% *}"
+   file_basename="${file_basename%%*( )}"
+
+   echo "$file_basename"
+}
+
+extract_series_no() {
+   local file_basename="$1"
+
+   file_basename="${file_basename##* }"
+   file_basename="${file_basename//[!0-9]/}"
+
+   echo "$file_basename"
+}
+
+pdf_filename() {
+  local directory_basename="$1"
+
+  if [[ -n "$PDF_FILENAME_TEMPLATE" ]]; then
+    local series_name="$(extract_series_name "$directory_basename")"
+    local series_no="$(extract_series_no "$directory_basename")"
+
+    if [[ -n "$series_name" && -n "$series_no" ]]; then
+      local filename="$PDF_FILENAME_TEMPLATE"
+      filename="${filename/\{series_name\}/$series_name}"
+      filename="${filename/\{series_no\}/$series_no}"
+      echo "$filename"
+      return 0
+    fi
+  fi
+
+  echo "${directory_basename}.pdf"
+}
+
 recursively_process_directory() {
   local directory="$1"
   local -a images
@@ -68,7 +115,7 @@ recursively_process_directory() {
     sort)
 
   if [[ "$IMAGE_SET_SIZE_THRESOLD" -le "${#images}" ]]; then
-    local pdf_filename="${directory##*/}.pdf"
+    local pdf_filename="$(pdf_filename "${directory##*/}")"
     echo "Converting ${#images[@]} images into \"${pdf_filename}\"."
     convert "${images[@]}" -quality "$IMAGE_QUALITY" "$pdf_filename"
 
