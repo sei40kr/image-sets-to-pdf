@@ -145,7 +145,11 @@ recursively_process_directory() {
 
   while IFS='' read -r image; do
     images+=("$image")
-  done < <(find "$directory" -mindepth 1 -maxdepth 1 -type f -name '*.jpg' |
+  done < <(find "$directory" \
+    -mindepth 1 \
+    -maxdepth 1 \
+    -type f \
+    \( -name '*.jpg' -o -name '*.png' \) |
     sort)
 
   if [[ "$IMAGE_SET_SIZE_THRESOLD" -le "${#images}" ]]; then
