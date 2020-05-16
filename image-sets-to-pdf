@@ -45,7 +45,7 @@ recursively_process() {
 }
 
 is_archive() {
-  [[ -f "$target" && "$target" =~ \.(zip|rar)$ ]]
+  [[ -f "$target" && "$target" =~ \.(zip|rar|cbz)$ ]]
 }
 
 recursively_process_archive() {
@@ -71,18 +71,22 @@ recursively_process_archive() {
     elif [[ "${unzip_available}" ]]; then
       unzip "$archive" -d "$temp_directory" >/dev/null
     else
-      echo 'Error: You need ditto or unzip in executable paths to unarchive' \
-        'ZIP archive.' >&2
+      echo 'Error: You need unar or ditto, or unzip in executable paths to' \
+        'unarchive ZIP archive.' >&2
       exit 127
     fi
   elif [[ "$archive" == *.rar ]]; then
     if [[ "${unrar_available}" ]]; then
       unrar x "$archive" "$temp_directory" >/dev/null
     else
-      echo 'Error: You need unrar in executable paths to unarchive RAR' \
-        'archive.' >&2
+      echo 'Error: You need unar or unrar in executable paths to unarchive' \
+        'RAR archive.' >&2
       exit 127
     fi
+  elif [[ "$archive" == *.cbz ]]; then
+    echo 'Error: You need unar in executable paths to unarchive CBZ archive.' \
+      >&2
+    exit 127
   fi
 
   recursively_process_directory "$temp_directory"
@@ -168,7 +172,7 @@ recursively_process_directory() {
     -mindepth 1 \
     -maxdepth 1 \
     -type f \
-    \( -name '*.zip' -o -name '*.rar' \))
+    \( -name '*.zip' -o -name '*.rar' -o -name '*.cbz' \))
 }
 
 main() {
