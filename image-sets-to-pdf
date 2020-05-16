@@ -71,6 +71,14 @@ recursively_process_directory() {
     local pdf_filename="${directory##*/}.pdf"
     echo "Converting ${#images[@]} images into \"${pdf_filename}\"."
     convert "${images[@]}" -quality "$IMAGE_QUALITY" "$pdf_filename"
+
+    local pdf_filesize
+    pdf_filesize="$(wc -c "$pdf_filename" | cut -d' ' -f2)"
+    pdf_filesize="$((pdf_filesize / 1024 / 1024))"
+    if [[ 10 -le "$pdf_filesize" ]]; then
+      echo "Warning: \"$pdf_filename\" is over 100MB, you can't upload it on" \
+        'Google Play Books.' >&2
+    fi
   fi
 
   while IFS='' read -r a_directory; do
