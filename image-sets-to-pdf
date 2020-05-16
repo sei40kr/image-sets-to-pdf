@@ -36,9 +36,9 @@ recursively_process_archive() {
     temp_directory="$(mktemp -d)"
     echo "Uncompressing \"${archive##*/}\" to \"${temp_directory}\""
     if [[ "$PREFER_DITTO" == 1 ]]; then
-      ditto -xk "$archive" "$temp_directory"
+      ditto -xk "$archive" "$temp_directory" >/dev/null
     else
-      unzip "$archive" -d "$temp_directory"
+      unzip "$archive" -d "$temp_directory" >/dev/null
     fi
     recursively_process_directory "$temp_directory"
     rm -rf "$temp_directory"
@@ -46,7 +46,7 @@ recursively_process_archive() {
     local temp_directory
     temp_directory="$(mktemp -d)"
     echo "Uncompressing \"${archive##*/}\" to \"${temp_directory}\""
-    unrar x "$archive" "$temp_directory"
+    unrar x "$archive" "$temp_directory" >/dev/null
     recursively_process_directory "$temp_directory"
     rm -rf "$temp_directory"
   else
