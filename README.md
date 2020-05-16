@@ -2,16 +2,16 @@
 
 Convert image sets to PDF so that I can read them on Google Play Books.
 
+## Requirements
+
+- ImageMagick
+- UnRAR
+
 ## Usage
 
 ``` sh
 image-sets-to-pdf [DIRECTORY OR ARCHIVE]
 ```
-
-## Requirements
-
-- ImageMagick
-- UnRAR
 
 ## Configurations
 
