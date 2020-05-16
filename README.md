@@ -10,7 +10,7 @@ Convert image sets to PDF so that I can read them on Google Play Books.
 ## Usage
 
 ``` sh
-image-sets-to-pdf [DIRECTORY OR ARCHIVE]
+image-sets-to-pdf [DIRECTORY OR ARCHIVE ...]
 ```
 
 ## Configurations
