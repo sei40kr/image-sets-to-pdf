@@ -14,9 +14,22 @@
 # {series_no}   -> series no
 : ${PDF_FILENAME_TEMPLATE:='{series_name} {series_no}.pdf'}
 
-declare PREFER_DITTO=0
-if hash ditto 2>/dev/null; then
-  PREFER_DITTO=1
+declare unar_available=0
+declare ditto_available=0
+declare unzip_available=0
+declare unrar_available=0
+
+if hash unar 2>/dev/null; then
+  unar_available=1
+fi
+if [[ "$OSTYPE" == darwin* ]] && hash ditto 2>/dev/null; then
+  ditto_available=1
+fi
+if hash unzip 2>/dev/null; then
+  unzip_available=1
+fi
+if hash unrar 2>/dev/null; then
+  unrar_available=1
 fi
 
 shopt -s extglob
@@ -38,28 +51,43 @@ is_archive() {
 recursively_process_archive() {
   local archive="$1"
 
-  if [[ "$archive" == *.zip ]]; then
-    local temp_directory
-    temp_directory="$(mktemp -d)"
-    echo "Uncompressing \"${archive##*/}\" to \"${temp_directory}\""
-    if [[ "$PREFER_DITTO" == 1 ]]; then
-      ditto -xk "$archive" "$temp_directory" >/dev/null
-    else
-      unzip "$archive" -d "$temp_directory" >/dev/null
-    fi
-    recursively_process_directory "$temp_directory"
-    rm -rf "$temp_directory"
-  elif [[ "$archive" == *.rar ]]; then
-    local temp_directory
-    temp_directory="$(mktemp -d)"
-    echo "Uncompressing \"${archive##*/}\" to \"${temp_directory}\""
-    unrar x "$archive" "$temp_directory" >/dev/null
-    recursively_process_directory "$temp_directory"
-    rm -rf "$temp_directory"
-  else
+  if ! is_archive "$archive"; then
     echo "Unknown or unsupported archive type: $archive" >&2
     exit 1
   fi
+
+  local temp_directory
+  temp_directory="$(mktemp -d)"
+  echo "Uncompressing \"${archive##*/}\" to \"${temp_directory}\""
+
+  # The Unarchiver can automatically detect encoding for filenames, and support
+  # various archive types.
+  # See https://theunarchiver.com/command-line
+  if [[ "${unar_available}" == 1 ]]; then
+    unar -o "$temp_directory" -q "$archive"
+  elif [[ "$archive" == *.zip ]]; then
+    if [[ "${ditto_available}" ]]; then
+      ditto -xk "$archive" "$temp_directory" >/dev/null
+    elif [[ "${unzip_available}" ]]; then
+      unzip "$archive" -d "$temp_directory" >/dev/null
+    else
+      echo 'Error: You need ditto or unzip in executable paths to unarchive' \
+        'ZIP archive.' >&2
+      exit 127
+    fi
+  elif [[ "$archive" == *.rar ]]; then
+    if [[ "${unrar_available}" ]]; then
+      unrar x "$archive" "$temp_directory" >/dev/null
+    else
+      echo 'Error: You need unrar in executable paths to unarchive RAR' \
+        'archive.' >&2
+      exit 127
+    fi
+  fi
+
+  recursively_process_directory "$temp_directory"
+
+  rm -rf "$temp_directory"
 }
 
 extract_series_name() {
