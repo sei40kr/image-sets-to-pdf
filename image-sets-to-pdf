@@ -159,12 +159,15 @@ recursively_process_directory() {
     local pdf_filename="$(pdf_filename "${directory##*/}")"
     echo "Converting ${#images[@]} images into \"${pdf_filename}\"."
 
+    local magick_temp_directory
+    magick_temp_directory="$(mktemp -d)"
     local -a convert_args=("${images[@]}" -quality "$IMAGE_QUALITY")
     if [[ -n "$IMAGE_WIDTH" ]]; then
       convert_args+=(-resize "${IMAGE_WIDTH}x")
     fi
     convert_args+=("$pdf_filename")
-    convert "${convert_args[@]}"
+    MAGICK_TMPDIR="$magick_temp_directory" convert "${convert_args[@]}"
+    rm -r "$magick_temp_directory"
 
     local pdf_filesize
     pdf_filesize="$(wc -c "$pdf_filename" | cut -d' ' -f2)"
