@@ -4,8 +4,12 @@
 # this program converts them into a PDF.
 : ${IMAGE_SET_SIZE_THRESOLD:=3}
 
-# The width of images. If empty, this program doesn't resize images.
-: ${IMAGE_WIDTH:=768}
+# The size of output images.
+# 1) If both width and height are empty, images won't be resized.
+# 2) If either width or height is empty, images will be resized keeping original
+#    aspect ratio.
+: ${IMAGE_WIDTH:=''}
+: ${IMAGE_HEIGHT:=1024}
 
 # The quality of images. This value will be passed to ImageMagick. This is
 # useful to reduce the size of output file to avoid the upload limitations on
@@ -163,7 +167,13 @@ recursively_process_directory() {
     magick_temp_directory="$(mktemp -d)"
     local -a convert_args=("${images[@]}" -quality "$IMAGE_QUALITY")
     if [[ -n "$IMAGE_WIDTH" ]]; then
-      convert_args+=(-resize "${IMAGE_WIDTH}x")
+      if [[ -n "$IMAGE_HEIGHT" ]]; then
+        convert_args+=(-resize "${IMAGE_WIDTH}x${IMAGE_HEIGHT}")
+      else
+        convert_args+=(-resize "${IMAGE_WIDTH}x")
+      fi
+    else
+      convert_args+=(-resize "x${IMAGE_HEIGHT}")
     fi
     convert_args+=("$pdf_filename")
     MAGICK_TMPDIR="$magick_temp_directory" convert "${convert_args[@]}"
