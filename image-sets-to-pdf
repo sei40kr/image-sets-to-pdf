@@ -10,7 +10,7 @@
 # The quality of images. This value will be passed to ImageMagick. This is
 # useful to reduce the size of output file to avoid the upload limitations on
 # Google Play Books.
-: ${IMAGE_QUALITY:=50%}
+: ${IMAGE_QUALITY:=90%}
 
 # The template for output PDF filenames. You can use these placeholders:
 # {series_name} -> series name
