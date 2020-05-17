@@ -63,20 +63,20 @@ recursively_process_archive() {
     exit 1
   fi
 
-  local temp_directory
-  temp_directory="$(mktemp -d)"
-  echo "Uncompressing \"${archive##*/}\" to \"${temp_directory}\""
+  local tmp_directory
+  tmp_directory="$(mktemp -d)"
+  echo "Uncompressing \"${archive##*/}\" to \"${tmp_directory}\""
 
   # The Unarchiver can automatically detect encoding for filenames, and support
   # various archive types.
   # See https://theunarchiver.com/command-line
   if [[ "${unar_available}" == 1 ]]; then
-    unar -o "$temp_directory" -q "$archive"
+    unar -o "$tmp_directory" -q "$archive"
   elif [[ "$archive" == *.zip ]]; then
     if [[ "${ditto_available}" ]]; then
-      ditto -xk "$archive" "$temp_directory" >/dev/null
+      ditto -xk "$archive" "$tmp_directory" >/dev/null
     elif [[ "${unzip_available}" ]]; then
-      unzip "$archive" -d "$temp_directory" >/dev/null
+      unzip "$archive" -d "$tmp_directory" >/dev/null
     else
       echo 'Error: You need unar or ditto, or unzip in executable paths to' \
         'unarchive ZIP archive.' >&2
@@ -84,7 +84,7 @@ recursively_process_archive() {
     fi
   elif [[ "$archive" == *.rar ]]; then
     if [[ "${unrar_available}" ]]; then
-      unrar x "$archive" "$temp_directory" >/dev/null
+      unrar x "$archive" "$tmp_directory" >/dev/null
     else
       echo 'Error: You need unar or unrar in executable paths to unarchive' \
         'RAR archive.' >&2
@@ -96,9 +96,9 @@ recursively_process_archive() {
     exit 127
   fi
 
-  recursively_process_directory "$temp_directory"
+  recursively_process_directory "$tmp_directory"
 
-  rm -rf "$temp_directory"
+  rm -rf "$tmp_directory"
 }
 
 extract_series_name() {
@@ -163,8 +163,8 @@ recursively_process_directory() {
     local pdf_filename="$(pdf_filename "${directory##*/}")"
     echo "Converting ${#images[@]} images into \"${pdf_filename}\"."
 
-    local magick_temp_directory
-    magick_temp_directory="$(mktemp -d)"
+    local magick_tmp_directory
+    magick_tmp_directory="$(mktemp -d)"
     local -a convert_args=("${images[@]}" -quality "$IMAGE_QUALITY")
     if [[ -n "$IMAGE_WIDTH" ]]; then
       if [[ -n "$IMAGE_HEIGHT" ]]; then
@@ -176,8 +176,8 @@ recursively_process_directory() {
       convert_args+=(-resize "x${IMAGE_HEIGHT}")
     fi
     convert_args+=("$pdf_filename")
-    MAGICK_TMPDIR="$magick_temp_directory" convert "${convert_args[@]}"
-    rm -r "$magick_temp_directory"
+    MAGICK_TMPDIR="$magick_tmp_directory" convert "${convert_args[@]}"
+    rm -r "$magick_tmp_directory"
 
     local pdf_filesize
     pdf_filesize="$(wc -c "$pdf_filename" | cut -d' ' -f2)"
