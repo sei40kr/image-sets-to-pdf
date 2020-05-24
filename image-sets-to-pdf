@@ -166,14 +166,8 @@ recursively_process_directory() {
     local magick_tmp_directory
     magick_tmp_directory="$(mktemp -d)"
     local -a convert_args=("${images[@]}" -quality "$IMAGE_QUALITY")
-    if [[ -n "$IMAGE_WIDTH" ]]; then
-      if [[ -n "$IMAGE_HEIGHT" ]]; then
-        convert_args+=(-resize "${IMAGE_WIDTH}x${IMAGE_HEIGHT}")
-      else
-        convert_args+=(-resize "${IMAGE_WIDTH}x")
-      fi
-    else
-      convert_args+=(-resize "x${IMAGE_HEIGHT}")
+    if [[ -n "$IMAGE_WIDTH" || -n "$IMAGE_HEIGHT" ]]; then
+      convert_args+=(-resize "${IMAGE_WIDTH}x${IMAGE_HEIGHT}")
     fi
     convert_args+=("$pdf_filename")
     MAGICK_TMPDIR="$magick_tmp_directory" convert "${convert_args[@]}"
